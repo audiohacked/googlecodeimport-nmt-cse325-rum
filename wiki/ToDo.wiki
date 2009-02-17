@@ -2,14 +2,15 @@
 
 = To Do =
 Functions we need to implement:
-open
-read
-write
-lseek
-close
-dup2
-getpid
-fork
-execv
-waitpid
-_exit
+|| function || who's doing it ||
+|| open || ||
+|| read || ||
+|| write || ||
+|| lseek || ||
+|| close || ||
+|| dup2 || ||
+|| getpid || ||
+|| fork || ||
+|| execv || ||
+|| waitpid || ||
+|| _exit || ||
