@@ -1,0 +1,5 @@
+#summary Naming conventions, instructions for crap, etc.
+
+= Naming Conventions =
+
+I don't care - fill in the blank.
