@@ -13,4 +13,4 @@ Functions we need to implement:
 || fork || ||
 || execv || ||
 || waitpid || ||
-|| _exit || ||
+|| `_`exit || ||
