@@ -1,0 +1,15 @@
+#summary Lists stuff we need to do, along with who's doing it.
+
+= To Do =
+Functions we need to implement:
+open
+read
+write
+lseek
+close
+dup2
+getpid
+fork
+execv
+waitpid
+_exit
