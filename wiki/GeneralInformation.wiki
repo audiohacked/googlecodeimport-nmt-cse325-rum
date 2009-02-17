@@ -2,4 +2,4 @@
 
 = Naming Conventions =
 
-I don't care - fill in the blank.
+use_underscores
