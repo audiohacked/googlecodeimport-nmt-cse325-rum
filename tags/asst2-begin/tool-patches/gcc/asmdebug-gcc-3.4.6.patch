@@ -1,0 +1,14 @@
+This patch enables line number information for debugging assembler
+source files.
+
+--- gcc-3.4.6/gcc/config/mips/mips.h	2004-07-14 18:42:49.000000000 -0600
++++ gcc-3.4.6+cs161/gcc/config/mips/mips.h	2009-01-29 11:28:41.000000000 -0700
+@@ -998,7 +998,7 @@
+ /* GAS_ASM_SPEC is passed when using gas, rather than the MIPS
+    assembler.  */
+ 
+-#define GAS_ASM_SPEC "%{mtune=*} %{v}"
++#define GAS_ASM_SPEC "%{mtune=*} %{v} %{g:%{.S:-gstabs} %{.s:-gstabs}}"
+ 
+ #define SUBTARGET_TARGET_SWITCHES
+ 

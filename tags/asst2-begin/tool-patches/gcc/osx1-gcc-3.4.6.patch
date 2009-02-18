@@ -1,0 +1,13 @@
+This patch corrects a compilation failure on OS X.
+
+--- gcc-3.3.2+cs161/gcc/system.h~	Sun Mar 30 20:12:20 2003
++++ gcc-3.3.2+cs161/gcc/system.h	Tue Feb  3 11:18:07 2004
+@@ -573,7 +573,7 @@
+ #define really_call_calloc calloc
+ #define really_call_realloc realloc
+ 
+-#if (GCC_VERSION >= 3000)
++#if (GCC_VERSION >= 3000) && !defined(__APPLE_CC__)
+ 
+ /* Note autoconf checks for prototype declarations and includes
+    system.h while doing so.  Only poison these tokens if actually
