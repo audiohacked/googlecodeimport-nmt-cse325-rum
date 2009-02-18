@@ -1,0 +1,74 @@
+This patch corrects some invalid preprocessor hacks that the OS X
+compiler rejects.
+
+--- gcc-3.4.6/gcc/builtin-attrs.def	2003-08-22 00:25:09.000000000 -0600
++++ gcc-3.4.6+cs161/gcc/builtin-attrs.def	2009-01-29 11:53:30.000000000 -0700
+@@ -124,23 +124,23 @@
+ 			ATTR_NOTHROW_NONNULL_1)
+ 
+ /* Construct a tree for a format attribute.  */
+-#define DEF_FORMAT_ATTRIBUTE(TYPE, FA, VALUES)				 \
+-  DEF_ATTR_TREE_LIST (ATTR_##TYPE##_##VALUES, ATTR_NULL,		 \
+-		      ATTR_##TYPE, ATTR_LIST_##VALUES)			 \
+-  DEF_ATTR_TREE_LIST (ATTR_FORMAT_##TYPE##_##VALUES, ATTR_FORMAT,	 \
+-		      ATTR_##TYPE##_##VALUES, ATTR_NOTHROW_NONNULL_##FA)
+-DEF_FORMAT_ATTRIBUTE(PRINTF,1,1_0)
+-DEF_FORMAT_ATTRIBUTE(PRINTF,1,1_2)
+-DEF_FORMAT_ATTRIBUTE(PRINTF,2,2_0)
+-DEF_FORMAT_ATTRIBUTE(PRINTF,2,2_3)
+-DEF_FORMAT_ATTRIBUTE(PRINTF,3,3_0)
+-DEF_FORMAT_ATTRIBUTE(PRINTF,3,3_4)
+-DEF_FORMAT_ATTRIBUTE(SCANF,1,1_0)
+-DEF_FORMAT_ATTRIBUTE(SCANF,1,1_2)
+-DEF_FORMAT_ATTRIBUTE(SCANF,2,2_0)
+-DEF_FORMAT_ATTRIBUTE(SCANF,2,2_3)
+-DEF_FORMAT_ATTRIBUTE(STRFTIME,3,3_0)
+-DEF_FORMAT_ATTRIBUTE(STRFMON,3,3_4)
++#define DEF_FORMAT_ATTRIBUTE(TYPE, FA, VAL1, VAL2)				\
++  DEF_ATTR_TREE_LIST (ATTR_##TYPE##_##VAL1##_##VAL2, ATTR_NULL,			\
++                      ATTR_##TYPE, ATTR_LIST_##VAL1##_##VAL2)			\
++  DEF_ATTR_TREE_LIST (ATTR_FORMAT_##TYPE##_##VAL1##_##VAL2, ATTR_FORMAT,	\
++                      ATTR_##TYPE##_##VAL1##_##VAL2, ATTR_NOTHROW_NONNULL_##FA)
++DEF_FORMAT_ATTRIBUTE(PRINTF,1,1,0)
++DEF_FORMAT_ATTRIBUTE(PRINTF,1,1,2)
++DEF_FORMAT_ATTRIBUTE(PRINTF,2,2,0)
++DEF_FORMAT_ATTRIBUTE(PRINTF,2,2,3)
++DEF_FORMAT_ATTRIBUTE(PRINTF,3,3,0)
++DEF_FORMAT_ATTRIBUTE(PRINTF,3,3,4)
++DEF_FORMAT_ATTRIBUTE(SCANF,1,1,0)
++DEF_FORMAT_ATTRIBUTE(SCANF,1,1,2)
++DEF_FORMAT_ATTRIBUTE(SCANF,2,2,0)
++DEF_FORMAT_ATTRIBUTE(SCANF,2,2,3)
++DEF_FORMAT_ATTRIBUTE(STRFTIME,3,3,0)
++DEF_FORMAT_ATTRIBUTE(STRFMON,3,3,4)
+ #undef DEF_FORMAT_ATTRIBUTE
+ 
+ /* Construct a tree for a format_arg attribute.  */
+--- gcc-3.4.6/include/symcat.h	2000-06-01 17:16:50.000000000 -0600
++++ gcc-3.4.6+cs161/include/symcat.h	2009-01-29 11:49:56.000000000 -0700
+@@ -23,6 +23,8 @@
+ #define CONCAT2(a,b)	 a##b
+ #define CONCAT3(a,b,c)	 a##b##c
+ #define CONCAT4(a,b,c,d) a##b##c##d
++#define CONCAT5(a,b,c,d,e) a##b##c##d##e
++#define CONCAT6(a,b,c,d,e,f) a##b##c##d##e##f
+ #define STRINGX(s) #s
+ #else
+ /* Note one should never pass extra whitespace to the CONCATn macros,
+@@ -32,12 +34,16 @@
+ #define CONCAT2(a,b)	 a/**/b
+ #define CONCAT3(a,b,c)	 a/**/b/**/c
+ #define CONCAT4(a,b,c,d) a/**/b/**/c/**/d
++#define CONCAT5(a,b,c,d) a/**/b/**/c/**/d/**/e
++#define CONCAT6(a,b,c,d) a/**/b/**/c/**/d/**/e/**/f
+ #define STRINGX(s) "s"
+ #endif
+ 
+ #define XCONCAT2(a,b)     CONCAT2(a,b)
+ #define XCONCAT3(a,b,c)   CONCAT3(a,b,c)
+ #define XCONCAT4(a,b,c,d) CONCAT4(a,b,c,d)
++#define XCONCAT5(a,b,c,d) CONCAT5(a,b,c,d)
++#define XCONCAT6(a,b,c,d) CONCAT6(a,b,c,d)
+ 
+ /* Note the layer of indirection here is typically used to allow
+    stringification of the expansion of macros.  I.e. "#define foo
