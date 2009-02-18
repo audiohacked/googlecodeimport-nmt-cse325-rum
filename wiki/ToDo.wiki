@@ -1,8 +1,8 @@
 #summary Lists stuff we need to do, along with who's doing it.
 
 = To Do =
-* Re-implement the scheduler.
-* Functions we need to implement:
+  * Re-implement the scheduler.
+  * Functions we need to implement:
 
 || function || who's doing it || arguments || description ||
 || open || || {{{const char *path, int  oflag, mode_t mode}}} || It  should be as simple as it seems ||
