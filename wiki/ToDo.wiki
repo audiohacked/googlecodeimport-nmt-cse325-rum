@@ -1,7 +1,7 @@
 #summary Lists stuff we need to do, along with who's doing it.
 
 = To Do =
-  * Re-implement the scheduler.
+  * Re-implement the scheduler. Round robin with priority is what we decided upon.
   * Functions we need to implement:
 
 || function || who's doing it || arguments || description ||
