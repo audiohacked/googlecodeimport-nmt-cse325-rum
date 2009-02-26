@@ -66,7 +66,7 @@ boot(void)
 	kprintf("%s", harvard_copyright);
 	kprintf("\n");
 
-	kprintf("Put-your-group-name-here's system version %s (%s #%d)\n", 
+	kprintf("nmt-cse325-rum's system version %s (%s #%d)\n", 
 		GROUP_VERSION, buildconfig, buildversion);
 	kprintf("\n");
 
@@ -80,7 +80,11 @@ boot(void)
 
 	/* Default bootfs - but ignore failure, in case emu0 doesn't exist */
 	vfs_setbootfs("emu0");
-
+	
+	// Displays the type of scheduler we have implemented, in compliance
+	// with lab 2.
+	kprintf("\nscheduler:%s\n",SCHEDULER_TYPE);
+	kprintf("\n");
 
 	/*
 	 * Make sure various things aren't screwed up.
