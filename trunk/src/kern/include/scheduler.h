@@ -1,6 +1,7 @@
 #ifndef _SCHEDULER_H_
 #define _SCHEDULER_H_
 
+#define SCHEDULER_TYPE "priority queuing with round robin"
 /*
  * Scheduler-related function calls.
  *
