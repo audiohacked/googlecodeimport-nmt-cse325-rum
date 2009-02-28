@@ -122,6 +122,8 @@ scheduler(void)
 		{
 			if(!q_empty(runqueue[i]))
 				 allempty = 0;
+		}
+		
 		cpu_idle();
 	}
 	
