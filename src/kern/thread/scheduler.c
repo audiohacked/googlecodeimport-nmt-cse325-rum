@@ -12,6 +12,7 @@
 #include <machine/spl.h>
 #include <queue.h>
 
+#define NUM_PRIORITIES 3
 /*
  *  Scheduler data
  */
@@ -25,8 +26,16 @@ static struct queue *runqueue;
 void
 scheduler_bootstrap(void)
 {
-	runqueue = q_create(32);
-	if (runqueue == NULL) {
+	int i;
+	//initialize NUM_PRIORITIES queues, one for each priority level
+	runqueue[NUM_PRIORITIES];
+	for(i = 0; i < NUM_PRIORITIES; i++)
+	{
+		runqueue[i] = q_create(32);
+	}
+	
+	if (runqueue == NULL) 
+	{
 		panic("scheduler: Could not create run queue\n");
 	}
 }
@@ -38,11 +47,13 @@ scheduler_bootstrap(void)
  * thread structure, for instance, this function can reasonably
  * do nothing.
  */
+ 
+ // modified to include which priority queue the thread is in
 int
-scheduler_preallocate(int nthreads)
+scheduler_preallocate(int nthreads, int priority)
 {
 	assert(curspl>0);
-	return q_preallocate(runqueue, nthreads);
+	return q_preallocate(runqueue[priority], nthreads);
 }
 
 /*
@@ -54,10 +65,17 @@ scheduler_preallocate(int nthreads)
 void
 scheduler_killall(void)
 {
+	int i;
 	assert(curspl>0);
-	while (!q_empty(runqueue)) {
-		struct thread *t = q_remhead(runqueue);
-		kprintf("scheduler: Dropping thread %s.\n", t->t_name);
+	
+	//kill all queues
+	for(i = 0; i < NUM_PRIORITIES; i++)
+	{
+		while (!q_empty(runqueue[i])) 
+		{
+			struct thread *t = q_remhead(runqueue[i]);
+			kprintf("scheduler: Dropping thread %s.\n", t->t_name);
+		}
 	}
 }
 
@@ -71,11 +89,17 @@ scheduler_killall(void)
 void
 scheduler_shutdown(void)
 {
+	int i;
 	scheduler_killall();
 
 	assert(curspl>0);
-	q_destroy(runqueue);
-	runqueue = NULL;
+	
+	// cleanup all queues
+	for(i = 0; i < NUM_PRIORITIES; i++)
+	{
+		q_destroy(runqueue[i]);
+		runqueue[i] = NULL;
+	}
 }
 
 /*
@@ -87,11 +111,25 @@ scheduler_shutdown(void)
 struct thread *
 scheduler(void)
 {
+	int runme, i, allempty = 1;
 	// meant to be called with interrupts off
 	assert(curspl>0);
 	
-	while (q_empty(runqueue)) {
+	//while all queues are empty, idle the CPU
+	while ( allempty = 1)
+	{
+		for(i = 0; i < NUM_PRIORITIES; i++)
+		{
+			if(!q_empty(runqueue[i]))
+				 allempty = 0;
 		cpu_idle();
+	}
+	
+	// find the highest priority queue with stuff in it
+	for(i = NUM_PRIORITIES; i >= 0 ; i--)
+	{
+		if(!q_empty(runqueue[i])
+			runme = i;
 	}
 
 	// You can actually uncomment this to see what the scheduler's
@@ -101,7 +139,7 @@ scheduler(void)
 	// 
 	//print_run_queue();
 	
-	return q_remhead(runqueue);
+	return q_remhead(runqueue[runme]);
 }
 
 /* 
@@ -114,7 +152,7 @@ make_runnable(struct thread *t)
 	// meant to be called with interrupts off
 	assert(curspl>0);
 
-	return q_addtail(runqueue, t);
+	return q_addtail(runqueue[t->priority], t);
 }
 
 /*
@@ -126,14 +164,18 @@ print_run_queue(void)
 	/* Turn interrupts off so the whole list prints atomically. */
 	int spl = splhigh();
 
-	int i,k=0;
-	i = q_getstart(runqueue);
-	
-	while (i!=q_getend(runqueue)) {
-		struct thread *t = q_getguy(runqueue, i);
-		kprintf("  %2d: %s %p\n", k, t->t_name, t->t_sleepaddr);
-		i=(i+1)%q_getsize(runqueue);
-		k++;
+	int i,j,k=0;
+	for(j = 0; j < NUM_PRIORITIES)
+	{
+		i = q_getstart(runqueue[j]);
+		
+		while (i!=q_getend(runqueue[j])) 
+		{
+			struct thread *t = q_getguy(runqueue[j], i);
+			kprintf("  %2d: %s %p\n", k, t->t_name, t->t_sleepaddr);
+			i=(i+1)%q_getsize(runqueue[j]);
+			k++;
+		}
 	}
 	
 	splx(spl);
