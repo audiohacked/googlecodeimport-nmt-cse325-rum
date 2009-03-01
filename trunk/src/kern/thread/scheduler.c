@@ -12,7 +12,6 @@
 #include <machine/spl.h>
 #include <queue.h>
 
-#define NUM_PRIORITIES 3
 /*
  *  Scheduler data
  */
