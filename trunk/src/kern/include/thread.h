@@ -20,6 +20,7 @@ struct thread {
 	char *t_name;
 	const void *t_sleepaddr;
 	char *t_stack;
+	int priority;
 	
 	/**********************************************************/
 	/* Public thread members - can be used by other code      */
@@ -38,6 +39,8 @@ struct thread {
 	 */
 	struct vnode *t_cwd;
 };
+/* Return value of priority, which is private */
+int get_priority(struct thread*);
 
 /* Call once during startup to allocate data structures. */
 struct thread *thread_bootstrap(void);

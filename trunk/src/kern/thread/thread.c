@@ -61,9 +61,21 @@ thread_create(const char *name)
 	
 	// If you add things to the thread structure, be sure to initialize
 	// them here.
+	/* initialize priority to 'normal', which will be the middle
+	* priority */
+	if((NUM_PRIORITIES%2) == 0)
+		thread->priority = NUM_PRIORITIES / 2;
+	else
+		thread->priority = (NUM_PRIORITIES - 1) / 2;
 	
 	return thread;
 }
+/* Return thread priority */
+int get_priority(struct thread *thread)
+{
+	return thread->priority;
+}
+
 
 /*
  * Destroy a thread.
@@ -283,7 +295,7 @@ thread_fork(const char *name,
 	}
 
 	/* Do the same for the scheduler. */
-	result = scheduler_preallocate(numthreads+1);
+	result = scheduler_preallocate(numthreads+1, get_priority(newguy));
 	if (result) {
 		goto fail;
 	}

@@ -17,7 +17,7 @@
  */
 
 // Queue of runnable threads
-static struct queue *runqueue;
+static struct queue *runqueue[NUM_PRIORITIES];
 
 /*
  * Setup function
@@ -27,16 +27,18 @@ scheduler_bootstrap(void)
 {
 	int i;
 	//initialize NUM_PRIORITIES queues, one for each priority level
-	runqueue[NUM_PRIORITIES];
+	//runqueue = kmalloc(sizeof(queue) * NUM_PRIORITIES);
 	for(i = 0; i < NUM_PRIORITIES; i++)
 	{
 		runqueue[i] = q_create(32);
+		
+		if (runqueue[i] == NULL) 
+		{
+			panic("scheduler: Could not create run queue\n");
+		}
 	}
 	
-	if (runqueue == NULL) 
-	{
-		panic("scheduler: Could not create run queue\n");
-	}
+	
 }
 
 /*
@@ -115,7 +117,7 @@ scheduler(void)
 	assert(curspl>0);
 	
 	//while all queues are empty, idle the CPU
-	while ( allempty = 1)
+	while ( allempty == 1)
 	{
 		for(i = 0; i < NUM_PRIORITIES; i++)
 		{
@@ -129,7 +131,7 @@ scheduler(void)
 	// find the highest priority queue with stuff in it
 	for(i = NUM_PRIORITIES; i >= 0 ; i--)
 	{
-		if(!q_empty(runqueue[i])
+		if(!q_empty(runqueue[i]))
 			runme = i;
 	}
 
@@ -153,7 +155,7 @@ make_runnable(struct thread *t)
 	// meant to be called with interrupts off
 	assert(curspl>0);
 
-	return q_addtail(runqueue[t->priority], t);
+	return q_addtail(runqueue[get_priority(t)], t);
 }
 
 /*
@@ -166,7 +168,7 @@ print_run_queue(void)
 	int spl = splhigh();
 
 	int i,j,k=0;
-	for(j = 0; j < NUM_PRIORITIES)
+	for(j = 0; j < NUM_PRIORITIES;j++)
 	{
 		i = q_getstart(runqueue[j]);
 		
