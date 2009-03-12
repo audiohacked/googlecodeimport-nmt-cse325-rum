@@ -32,7 +32,8 @@ static struct array *sleepers;
 static struct array *zombies;
 
 /* Total number of outstanding threads. Does not count zombies[]. */
-static int numthreads;
+static int numthreads[NUM_PRIORITIES];
+static int totalthreads;
 
 /*
  * Create a thread. This is used both to create the first thread's 
@@ -63,10 +64,7 @@ thread_create(const char *name)
 	// them here.
 	/* initialize priority to 'normal', which will be the middle
 	* priority */
-	if((NUM_PRIORITIES%2) == 0)
-		thread->priority = NUM_PRIORITIES / 2;
-	else
-		thread->priority = (NUM_PRIORITIES - 1) / 2;
+	thread->priority = NORMAL_PRIORITY;
 	
 	return thread;
 }
@@ -182,6 +180,7 @@ struct thread *
 thread_bootstrap(void)
 {
 	struct thread *me;
+	int i;
 
 	/* Create the data structures we need. */
 	sleepers = array_create();
@@ -215,7 +214,13 @@ thread_bootstrap(void)
 	curthread = me;
 
 	/* Number of threads starts at 1 */
-	numthreads = 1;
+	for(i = 0; i < NUM_PRIORITIES; i++)
+	{
+		numthreads[i] = 0;
+	}
+	//there will be at least one thread, in the normal priority
+	totalthreads = 1;
+	numthreads[NORMAL_PRIORITY] = 1;
 
 	/* Done */
 	return me;
@@ -285,17 +290,17 @@ thread_fork(const char *name,
 	 * Make sure our data structures have enough space, so we won't
 	 * run out later at an inconvenient time.
 	 */
-	result = array_preallocate(sleepers, numthreads+1);
+	result = array_preallocate(sleepers, totalthreads+1);
 	if (result) {
 		goto fail;
 	}
-	result = array_preallocate(zombies, numthreads+1);
+	result = array_preallocate(zombies, totalthreads+1);
 	if (result) {
 		goto fail;
 	}
 
 	/* Do the same for the scheduler. */
-	result = scheduler_preallocate(numthreads+1, get_priority(newguy));
+	result = scheduler_preallocate(numthreads[get_priority(newguy)]+1, get_priority(newguy));
 	if (result) {
 		goto fail;
 	}
@@ -312,7 +317,8 @@ thread_fork(const char *name,
 	 * temporarily too low, which would obviate its reason for
 	 * existence.
 	 */
-	numthreads++;
+	numthreads[get_priority(newguy)]++;
+	totalthreads++;
 
 	/* Done with stuff that needs to be atomic */
 	splx(s);
@@ -471,8 +477,10 @@ thread_exit(void)
 		curthread->t_cwd = NULL;
 	}
 
-	assert(numthreads>0);
-	numthreads--;
+	assert(totalthreads>0);
+	assert(numthreads[get_priority(curthread)]>0);
+	totalthreads--;
+	numthreads[get_priority(curthread)]--;
 	mi_switch(S_ZOMB);
 
 	panic("Thread came back from the dead!\n");

@@ -3,6 +3,7 @@
 
 #define SCHEDULER_TYPE "priority queuing with round robin"
 #define NUM_PRIORITIES 3
+#define NORMAL_PRIORITY 1
 /*
  * Scheduler-related function calls.
  *
