@@ -30,15 +30,17 @@ scheduler_bootstrap(void)
 	//runqueue = kmalloc(sizeof(queue) * NUM_PRIORITIES);
 	for(i = 0; i < NUM_PRIORITIES; i++)
 	{
-		runqueue[i] = q_create(32);
+		//kprintf("initializing queue %i\n", i);
+		if(32%NUM_PRIORITIES==0)
+			runqueue[i] = q_create(32/NUM_PRIORITIES);
+		else
+			runqueue[i] = q_create(32/(NUM_PRIORITIES + 1));
 		
 		if (runqueue[i] == NULL) 
 		{
 			panic("scheduler: Could not create run queue\n");
 		}
 	}
-	
-	
 }
 
 /*
