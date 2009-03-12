@@ -28,7 +28,7 @@ int make_runnable(struct thread *t);
 void print_run_queue(void);
 
 void scheduler_bootstrap(void);
-int scheduler_preallocate(int numthreads);
+int scheduler_preallocate(int numthreads, int priority);
 void scheduler_killall(void);
 void scheduler_shutdown(void);
 
