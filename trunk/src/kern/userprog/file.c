@@ -47,12 +47,28 @@ open(cont char *path, int oflag, mode_t mode)
 * attached to the same file.
 *
 * Returns 0 for success, -1 for error */
-int close(int fd)
+int close(int fid)
 {
-	// I'm basically just treating fd as a pointer to the
-	// node, though I'm pretty sure that's not the right
-	// thing to do...
-	vfs_close(fd);
+	file *fd;
+	vnode *node;
+	
+	// find the descriptor in the process's file table
+	fd = curthread->t_fd[fid];
+	
+	// if not a valid file handle, return -1 and set errno to EBADF
+	if(fd == NULL)
+	{
+		errno = EBADF;
+		return -1;
+	}
+	
+	// get the vnode from the file descriptor
+	node = fd->vfs_node;
+	// close the node
+	vfs_close(node);
+	//curthread->fdcount--;
+	*fd = NULL;
+	return 0;
 }
 
 // read data from a file
