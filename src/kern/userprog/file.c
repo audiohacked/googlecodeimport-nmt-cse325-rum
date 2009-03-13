@@ -115,5 +115,32 @@ off_t lseek(int fd, off_t pos, int whence)
  * Returns newfd on success, -1 on error */
 int dup2(int oldfd, int newfd)
 {
+	struct file *nfd, *ofd;
 	
+	// find the descriptor in the process's file table
+	nfd = curthread->t_fd[newfd];
+	ofd = curthread->t_fd[oldfd];
+	
+	// check to make sure oldfd refers to a valid handle
+	if(fd->vfs_node == NULL)
+	{
+		errno = EBADF;
+		return -1;
+	}
+	
+	// check to see if newfd is already an open file handle
+	if(fd->vfs_node != NULL)
+	{
+		close(newfd);
+	}
+	
+	// increment the open count on the vfs_node
+	VOP_INCOPEN(fd->vfs_node);
+	
+	// set all stuff in the new node equal to stuff in the old node
+	nfd->vfs_node = ofd->vfs_node;
+	nfd->writable = ofd->writable;
+	nfd->readable = ofd->readable;
+	nfd->location = ofd->location;
+	return 0;
 }
