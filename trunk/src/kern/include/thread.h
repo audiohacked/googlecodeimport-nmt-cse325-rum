@@ -8,6 +8,8 @@
 /* Get machine-dependent stuff */
 #include <machine/pcb.h>
 
+/* User-implemented includes */
+#include <file.h>
 
 struct addrspace;
 
@@ -38,6 +40,12 @@ struct thread {
 	 * and is manipulated by the virtual filesystem (VFS) code.
 	 */
 	struct vnode *t_cwd;
+	
+	/*
+	 * This is the file descriptor table for a thread
+	 */
+	struct file t_fd[MAX_FD];
+	int fdcount;
 };
 /* Return value of priority, which is private */
 int get_priority(struct thread*);

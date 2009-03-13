@@ -20,24 +20,24 @@ open(cont char *path, int oflag, mode_t mode)
 	struct vnode *v;
 	
 	/* fix gcc warnings/errors due to unused variable */
-	(void) mode;
+	(void) mode; /* curthread->t_fd->mode = mode; */
 
 	/* use vfs_open to open the file */
 	result = vfs_open( path, oflag, &v);
 	
 	/* add new fd to process's fd table */
-	curthread->fd_t->fd = curthread->fdcount++;
-	curthread->fd_t->vfs_node = v;
+	curthread->t_fd->fd = curthread->fdcount++;
+	curthread->t_fd->vfs_node = v;
 	if (oflag & O_RDONLY) 
 	{
-		curthread->fd_t->writeable=0;
+		curthread->t_fd->writeable=0;
 	}
 	else
 	{
-		curthread->fd_t->writeable=1;
+		curthread->t_fd->writeable=1;
 	}
 
-	return curthread->fd_t->fd;
+	return curthread->t_fd->fd;
 }
 
 // close a file

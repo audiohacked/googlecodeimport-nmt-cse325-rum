@@ -3,13 +3,16 @@
 
 #include <unistd.h>
 
+#define MAX_FD 255
+
 struct file {
-	int fd;
 	struct vnode *vfs_node;
 	uint8_t writeable;
+	uint8_t readable;
+	/*mode_t mode; /* unused */
 };
 
-int fdcount = 2;
+/*int fdcount = 2; */
 
 // open a file, without mode
 /* open opens the file, device, or other kernel object named by the 
