@@ -49,25 +49,20 @@ open(cont char *path, int oflag, mode_t mode)
 * Returns 0 for success, -1 for error */
 int close(int fid)
 {
-	file *fd;
-	vnode *node;
+	struct file *fd;
 	
 	// find the descriptor in the process's file table
 	fd = curthread->t_fd[fid];
 	
 	// if not a valid file handle, return -1 and set errno to EBADF
-	if(fd == NULL)
+	if(fd->vfs_node == NULL)
 	{
 		errno = EBADF;
 		return -1;
 	}
-	
-	// get the vnode from the file descriptor
-	node = fd->vfs_node;
 	// close the node
-	vfs_close(node);
-	//curthread->fdcount--;
-	*fd = NULL;
+	vfs_close(fd->vfs_node);
+	fd->vfs_node = NULL;
 	return 0;
 }
 
