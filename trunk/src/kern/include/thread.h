@@ -45,7 +45,7 @@ struct thread {
 	 * This is the file descriptor table for a thread
 	 */
 	struct file t_fd[MAX_FD];
-	int fdcount;
+	int fdcount; /* highest fd created */
 };
 /* Return value of priority, which is private */
 int get_priority(struct thread*);

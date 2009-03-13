@@ -16,7 +16,7 @@ int
 open(cont char *path, int oflag, mode_t mode)
 {
 	/* set up variables for the vnode return, and function call return */
-	int result;
+	int result, fd;
 	struct vnode *v;
 	
 	/* fix gcc warnings/errors due to unused variable */
@@ -26,18 +26,18 @@ open(cont char *path, int oflag, mode_t mode)
 	result = vfs_open( path, oflag, &v);
 	
 	/* add new fd to process's fd table */
-	curthread->t_fd->fd = curthread->fdcount++;
-	curthread->t_fd->vfs_node = v;
+	fd = curthread->fdcount++;
+	curthread->t_fd[fd].vfs_node = v;
 	if (oflag & O_RDONLY) 
 	{
-		curthread->t_fd->writeable=0;
+		curthread->t_fd[fd].writeable=0;
 	}
 	else
 	{
-		curthread->t_fd->writeable=1;
+		curthread->t_fd[fd].writeable=1;
 	}
 
-	return curthread->t_fd->fd;
+	return fd;
 }
 
 // close a file
