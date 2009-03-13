@@ -12,46 +12,32 @@ extern int errno;
 * and can be ignored.
 *
 * Returns a non-negative file handle, or -1 for error */
-int open(const char *filename, int flags)
+int 
+open(cont char *path, int oflag, mode_t mode)
 {
-	int vfsReturn;
-	vnode *node;
-	vfsReturn = vfs_open(filename, flags, &node);
+	/* set up variables for the vnode return, and function call return */
+	int result;
+	struct vnode *v;
 	
-	// vfs_open returns non-zero on error
-	if(vfsReturn != 0)
-	{
-		errno = vfsReturn;
-		return -1;	
-	}
-	else
-	{
-		return node;
-	}
-}
+	/* fix gcc warnings/errors due to unused variable */
+	(void) mode;
 
-// open a file, with mode (we'll ignore mode since it's not required)
-int open(const char *filename, int flags, int mode)
-{
-	int vfsReturn;
-	vnode *node;
-	vfsReturn = vfs_open(filename, flags, &node);
+	/* use vfs_open to open the file */
+	result = vfs_open( path, oflag, &v);
 	
-	// vfs_open returns non-zero on error
-	if(vfsReturn != 0)
+	/* add new fd to process's fd table */
+	curthread->fd_t->fd = curthread->fdcount++;
+	curthread->fd_t->vfs_node = v;
+	if (oflag & O_RDONLY) 
 	{
-		errno = vfsReturn;
-		return -1;	
+		curthread->fd_t->writeable=0;
 	}
 	else
 	{
-		// eventually, we'll generate an fid, and put
-		// it into a file descriptor struct, which
-		// will be linked to the node in some sort
-		// of system table
-		// returning the node will not work
-		return node;
+		curthread->fd_t->writeable=1;
 	}
+
+	return curthread->fd_t->fd;
 }
 
 // close a file

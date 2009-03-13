@@ -3,6 +3,14 @@
 
 #include <unistd.h>
 
+struct file {
+	int fd;
+	struct vnode *vfs_node;
+	uint8_t writeable;
+};
+
+int fdcount = 2;
+
 // open a file, without mode
 /* open opens the file, device, or other kernel object named by the 
 * pathname filename. The flags argument specifies how to open the file. 
