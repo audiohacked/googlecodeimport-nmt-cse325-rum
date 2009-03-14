@@ -37,7 +37,8 @@ execv(const char *program, char **args)
 	/* Open the file. */
 	result = vfs_open(progname, O_RDONLY, &v);
 	if (result) {
-		return result;
+		errno = result;
+		return -1;
 	}
 
 	/* Create a new address space. */
@@ -45,7 +46,8 @@ execv(const char *program, char **args)
 	new = as_create();
 	if (curthread->t_vmspace==NULL) {
 		vfs_close(v);
-		return ENOMEM;
+		errno = ENOMEM;
+		return -1;
 	}
 	else
 	{
@@ -61,7 +63,8 @@ execv(const char *program, char **args)
 	if (result) {
 		/* thread_exit destroys curthread->t_vmspace */
 		vfs_close(v);
-		return result;
+		errno = result;
+		return -1;
 	}
 
 	/* Done with the file now. */
@@ -71,7 +74,8 @@ execv(const char *program, char **args)
 	result = as_define_stack(curthread->t_vmspace, &stackptr);
 	if (result) {
 		/* thread_exit destroys curthread->t_vmspace */
-		return result;
+		errno = result;
+		return -1;
 	}
 
 	/* fetch the arguments and environment from the caller */
@@ -87,7 +91,8 @@ execv(const char *program, char **args)
 	
 	/* md_usermode does not return */
 	panic("md_usermode returned\n");
-	return EINVAL;
+	errno = EINVAL;
+	return -1;
 }
 
 int get_args_count(char **args)
