@@ -9,6 +9,7 @@ struct file {
 	struct vnode *vfs_node;
 	uint8_t writeable;
 	uint8_t readable;
+	struct uio *location;
 	//mode_t mode; /* unused */
 };
 
