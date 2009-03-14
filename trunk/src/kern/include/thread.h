@@ -46,6 +46,12 @@ struct thread {
 	 */
 	struct file t_fd[MAX_FD];
 	int fdcount; /* highest fd created */
+
+	/*
+	 * This is the PID for the thread
+	 */
+	pid_t t_pid;
+	pid_t t_ppid;
 };
 /* Return value of priority, which is private */
 int get_priority(struct thread*);
