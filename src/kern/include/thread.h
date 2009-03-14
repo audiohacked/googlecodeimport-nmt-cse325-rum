@@ -10,6 +10,7 @@
 
 /* User-implemented includes */
 #include <file.h>
+#include <pid.h>
 
 struct addrspace;
 
@@ -48,11 +49,12 @@ struct thread {
 	int fdcount; /* highest fd created */
 
 	/*
-	 * This is the PID for the thread
+	 * This is the Process Table for the thread
 	 */
-	pid_t t_pid;
-	pid_t t_ppid;
+	struct proc_table t_ptable;
+
 };
+
 /* Return value of priority, which is private */
 int get_priority(struct thread*);
 

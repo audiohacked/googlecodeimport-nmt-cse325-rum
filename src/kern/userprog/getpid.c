@@ -3,6 +3,6 @@
 pid_t
 getpid(void)
 {
-	return curthread->t_pid;
+	return curthread->t_ptable.process;
 }
 
