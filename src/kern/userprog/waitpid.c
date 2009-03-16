@@ -1,8 +1,9 @@
+#include <thread.h>
+
 pid_t
 waitpid(pid_t wpid, int *status, int options)
 {
 	struct proc_table *ptable;
-	int ret;
 
 	if (status == NULL)
 	{
