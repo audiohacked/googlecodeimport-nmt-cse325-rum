@@ -13,5 +13,5 @@ _exit(int exitcode)
 	assert(ptable->process_id == curpid);
 	ptable->exit_code = exitcode;
 	ptable->exited = 1;
-	kill_curthread();
+	thread_exit();
 }
