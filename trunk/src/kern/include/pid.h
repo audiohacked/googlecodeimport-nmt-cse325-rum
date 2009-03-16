@@ -7,6 +7,8 @@ struct proc_table
 {
 	pid_t parent_pid;
 	pid_t process_id;
+	int exit_code;
+	int exited;
 }
 
 #endif /* __PID_H */

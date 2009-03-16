@@ -18,6 +18,7 @@ pid_t
 fork(void)
 {
 	struct thread *child;
+	struct proc_table *ptable;
 	int result, s;
 
 	/* check for space for child in process table */
@@ -79,6 +80,12 @@ fork(void)
 		goto fail;
 	}
 
+	result = array_preallocate(process_table, totalthreads+1);
+	if (result)
+	{
+		goto fail;
+	}
+
 	/* Do the same for the scheduler. */
 	result = scheduler_preallocate(numthreads[get_priority(child)]+1, get_priority(child));
 	if (result)
@@ -86,12 +93,14 @@ fork(void)
 		goto fail;
 	}
 
-	/* copy the rest of parent's thread data to child */
+	/* copy the priority of parent to child */
 	child->priority = curthread->priority;
 	
 	/* allocate pid for child */
-	child->t_ptable.parent_pid = curthread->t_ptable.proccess_id;
-	child->t_ptable.process_id = totalthreads+1;
+	ptable->parent_pid = curthread->t_ptable.proccess_id;
+	ptable->process_id = totalthreads+1;
+	array_setguy(process_table, totalthreads+1, ptable);
+	child->t_ptable = *ptable;
 
 	/* tell kernel about child */
 	result = make_runnable(child);

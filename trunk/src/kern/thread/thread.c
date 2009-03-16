@@ -35,6 +35,9 @@ static struct array *zombies;
 static int numthreads[NUM_PRIORITIES];
 static int totalthreads;
 
+/* process table for all threads; needed to help implement waitpid and pid system */
+static struct array *process_table;
+
 /*
  * Create a thread. This is used both to create the first thread's 
  * thread structure and to create subsequent threads.
@@ -193,6 +196,12 @@ thread_bootstrap(void)
 		panic("Cannot create zombies array\n");
 	}
 	
+	process_table = array_create();
+	if (process_table==NULL)
+	{
+		panic("Cannot create process_table array\n");
+	}
+	
 	/*
 	 * Create the thread structure for the first thread
 	 * (the one that's already running)
@@ -236,6 +245,8 @@ thread_shutdown(void)
 	sleepers = NULL;
 	array_destroy(zombies);
 	zombies = NULL;
+	array_destroy(process_table);
+	process_table = NULL;
 	// Don't do this - it frees our stack and we blow up
 	//thread_destroy(curthread);
 }
@@ -295,6 +306,10 @@ thread_fork(const char *name,
 		goto fail;
 	}
 	result = array_preallocate(zombies, totalthreads+1);
+	if (result) {
+		goto fail;
+	}
+	result = array_preallocate(process_table, totalthreads+1);
 	if (result) {
 		goto fail;
 	}
