@@ -5,8 +5,8 @@
 
 struct proc_table
 {
-	pid_t parent;
-	pid_t process;
+	pid_t parent_pid;
+	pid_t process_id;
 }
 
 #endif /* __PID_H */
