@@ -14,6 +14,9 @@ Each thread has a file descriptor table of fixed size, determined by the constan
 ----
 
 == Processes ==
-
+For this part, we needed to implement a pid system to manage processes; waiting and exiting processes.
+----
+*PID System* -
+The pid system is a `struct array` in thread.c where the index is the pid and the entry holds the parent's pid, thread's/process' pid, the exit code and if it has exited execution. Each thread will hold a copy of its pid table entry that holds the same info. `Getpid` uses the thread's pid entry to get the thread's pid. While, `waitpid` and `_exit` uses the global pid table to get their info.
 ----
 = Scheduler =
