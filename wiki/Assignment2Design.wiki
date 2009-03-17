@@ -4,6 +4,10 @@ In this lab, we implemented many different things. The bulk of the lab was spent
 
 = System Calls =
 == File I/O ==
+For this part, we needed to implement a few things before we could implement the actual system calls - namely, file descriptors and a file descriptor table for each thread.
+
+File Descriptors -
+Our file descriptor design includes a few integral elements. Most importantly, it includes a pointer to a vnode struct, which represents the interface to a single file in the filesystem. It also includes integers which represent whether the file is readable or writable. Lastly, it includes a uio struct which represents the location in the file, and has a pointer to any data that is read from a file.
 
 == Processes ==
 
