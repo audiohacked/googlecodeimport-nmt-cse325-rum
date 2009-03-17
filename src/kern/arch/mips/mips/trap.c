@@ -38,6 +38,11 @@ static
 void
 kill_curthread(u_int32_t epc, unsigned code, u_int32_t vaddr)
 {
+	struct thread *cur, *next;
+	int splsave;
+	
+	splsave = splhigh();
+	
 	assert(code<NTRAPCODES);
 	kprintf("Fatal user mode trap %u (%s, epc 0x%x, vaddr 0x%x)\n",
 		code, trapcodenames[code], epc, vaddr);
@@ -45,7 +50,22 @@ kill_curthread(u_int32_t epc, unsigned code, u_int32_t vaddr)
 	/*
 	 * You will probably want to change this.
 	 */
-	panic("I don't know how to handle this\n");
+	//panic("I don't know how to handle this\n");
+
+	cur = curthread;
+	curthread = NULL;
+	
+	next = scheduler();
+	curthread = next;
+	
+	md_switch(&cur->t_pcb, &next->t_pcb);
+	
+	if(curthread->t_vmspace)
+	{
+		as_activate(curthread->t_vmspace);
+	}
+	
+	splx(splsave);
 }
 
 /*
