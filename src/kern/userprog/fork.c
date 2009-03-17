@@ -80,7 +80,7 @@ fork(void)
 		goto fail;
 	}
 
-	result = array_preallocate(process_table, totalthreads+1);
+	result = array_preallocate(process_table, pidcount+1);
 	if (result)
 	{
 		goto fail;
@@ -98,8 +98,8 @@ fork(void)
 	
 	/* allocate pid for child */
 	ptable->parent_pid = curthread->t_ptable.proccess_id;
-	ptable->process_id = totalthreads+1;
-	array_setguy(process_table, totalthreads+1, ptable);
+	ptable->process_id = pidcount+1;
+	array_setguy(process_table, pidcount+1, ptable);
 	child->t_ptable = *ptable;
 
 	/* tell kernel about child */
@@ -117,6 +117,7 @@ fork(void)
 	 */
 	numthreads[get_priority(child)]++;
 	totalthreads++;
+	pidcount++;
 
 	/* Done with stuff that needs to be atomic */
 	splx(s);

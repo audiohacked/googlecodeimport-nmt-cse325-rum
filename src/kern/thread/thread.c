@@ -37,6 +37,7 @@ static int totalthreads;
 
 /* process table for all threads; needed to help implement waitpid and pid system */
 static struct array *process_table;
+static int pidcount = 0;
 
 /*
  * Create a thread. This is used both to create the first thread's 
