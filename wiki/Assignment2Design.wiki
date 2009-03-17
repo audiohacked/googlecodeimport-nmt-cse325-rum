@@ -1,0 +1,11 @@
+#summary Where our design documents for Assignment 2 go.
+= Introduction =
+In this lab, we implemented many different things. The bulk of the lab was spent implementing various system calls related to file I/O and processes. The remainder of the lab was designing and implementing a scheduler.
+
+= System Calls =
+== File I/O ==
+
+== Processes ==
+
+
+= Scheduler =
