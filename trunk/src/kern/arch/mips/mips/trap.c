@@ -54,17 +54,24 @@ kill_curthread(u_int32_t epc, unsigned code, u_int32_t vaddr)
 
 	cur = curthread;
 	curthread = NULL;
-	
 	next = scheduler();
 	curthread = next;
-	
 	md_switch(&cur->t_pcb, &next->t_pcb);
-	
 	if(curthread->t_vmspace)
 	{
 		as_activate(curthread->t_vmspace);
 	}
-	
+
+	/* destroy old thread */
+	struct addrspace *as = cur->t_vmspace;
+	cur->t_vmspace = NULL;
+	as_destroy(as);
+	VOP_DECREF(cur->t_cwd);
+	cur->t_cwd = NULL;
+	totalthreads--;
+	numthreads[get_priority(cur)]--;
+	thread_destroy(cur);
+
 	splx(splsave);
 }
 
