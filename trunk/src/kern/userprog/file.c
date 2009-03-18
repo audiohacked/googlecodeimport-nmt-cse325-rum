@@ -12,7 +12,7 @@ extern int errno;
 * and can be ignored.
 *
 * Returns a non-negative file handle, or -1 for error */
-int open(cont char *path, int oflag, mode_t mode)
+int open(cont char *path, int oflag)
 {
 	/* set up variables for the vnode return, and function call return */
 	int result, fd;
@@ -87,7 +87,7 @@ int read(int fd, void *buf, size_t buflen)
 	int result;
 	
 	// check for validity of file handle
-	if(curthread->t_fd[fd]->vfs_node == NULL)
+	if(curthread->t_fd[fd]->vfs_node == NULL||curthread->t_fd[fd].readable == 0)
 	{
 		errno = EBADF;
 		return -1;
@@ -103,10 +103,21 @@ int read(int fd, void *buf, size_t buflen)
 	// if result is 0, we've reached EOF - else move data into buf
 	if(result > 0)
 	{
-		// still need to implement actually copying data to buf
-		// and checking buf for problems
-		//buf = curthread->t_fd[fd]->location->uio_space.iov_un;
-		//change offset here?
+		if(buf == NULL)
+		{
+			errno = EFAULT;
+			return -1;
+		}
+		// make sure read populated the array properly
+		else if(curthread->t_fd[fd]->location->uio_space.iov_un != NULL)
+		{
+			buf = curthread->t_fd[fd]->location->uio_space.iov_un;
+		}
+		else
+		{
+			errno = EIO;
+			return -1;
+		}
 	}
 	return result;
 }
@@ -120,7 +131,7 @@ int read(int fd, void *buf, size_t buflen)
 * to other I/O to the same file.
 *
 * Returns the number of bytes written, or a negative number for an error */
-int write(int fd, const void *buf, size_t nbytes>)
+int write(int fd, const void *buf, size_t nbytes)
 {
 	int result;
 	
@@ -179,29 +190,19 @@ off_t lseek(int fd, off_t pos, int whence)
 	}
 	else if(whence == SEEK_SET)
 	{
-		//probably need to check for EOF here
-		//looks like vop_tryseek will help a lot
-		
-		/*result = VOP_TRYSEEK(curthread->t_fd[fd]->vfs_node,
-		curthread->t_fd[fd]->location.uio_offset);*/
-			
 		curthread->t_fd[fd]->location.uio_offset = pos;
 		return curthread->t_fd[fd]->location.uio_offset;
 	}
 	else if(whence == SEEK_END)
 	{
-		/*while(result)
-		//{
-		//result = VOP_READ(curthread->t_fd[fd]->vfs_node, 
-		//curthread->t_fd[fd]->location);
-		//}
-		//result = VOP_WRITE(curthread->t_fd[fd]->vfs_node, 
-		curthread->t_fd[fd]->location);*/
-		
 		//do a read to the EOF, then add
 		//pos to offset
-		//need to figure out if vop_read changes the offset,
-		//or I need to change it manually (same goes for read)
+		do
+		{
+			result = VOP_READ(curthread->t_fd[fd]->vfs_node, 
+				curthread->t_fd[fd]->location);
+		}while(result > 0);
+		curthread->t_fd[fd]->location.uio_offset += pos;
 		return curthread->t_fd[fd]->location.uio_offset;
 	}
 	else
