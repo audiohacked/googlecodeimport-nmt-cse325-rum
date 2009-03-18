@@ -20,7 +20,7 @@
 static struct queue *runqueue[NUM_PRIORITIES];
 
 
-Semaphore my_semaphore = 1;
+//Semaphore my_semaphore = 1;
 /*
  * Setup function
  */
@@ -30,14 +30,18 @@ scheduler_bootstrap(void)
 	int i;
 	//initialize NUM_PRIORITIES queues, one for each priority level
 	//runqueue = kmalloc(sizeof(queue) * NUM_PRIORITIES);
+	/*runqueue[HIGH_PRIORITY] = q_create(5);
+	runqueue[NORMAL_PRIORITY] = q_create(22);
+	runqueue[LOW_PRIORITY] = q_create(5);
+	*/
 	for(i = 0; i < NUM_PRIORITIES; i++)
 	{
 		//kprintf("initializing queue %i\n", i);
-		if(32%NUM_PRIORITIES==0)
-			runqueue[i] = q_create(32/NUM_PRIORITIES);
-		else
-			runqueue[i] = q_create(32/(NUM_PRIORITIES + 1));
-		
+		//if(32%NUM_PRIORITIES==0)
+		//	runqueue[i] = q_create(32/NUM_PRIORITIES);
+		//else
+		//	runqueue[i] = q_create(32/(NUM_PRIORITIES + 1));
+		runqueue[i] = q_create(10);
 		if (runqueue[i] == NULL) 
 		{
 			panic("scheduler: Could not create run queue\n");
@@ -117,8 +121,8 @@ struct thread *
 scheduler(void)
 {
 	int runme, i, allempty = 1;
+
 	// meant to be called with interrupts off
-	disableInterrupts();
 	assert(curspl>0);
 	
 	//while all queues are empty, idle the CPU
@@ -139,7 +143,6 @@ scheduler(void)
 		if(!q_empty(runqueue[i]))
 			runme = i;
 	}
-	enableInterrupts();
 	// You can actually uncomment this to see what the scheduler's
 	// doing - even this deep inside thread code, the console
 	// still works. However, the amount of text printed is
@@ -157,9 +160,9 @@ scheduler(void)
 int
 make_runnable(struct thread *t)
 {
-	disableInterrupts();// meant to be called with interrupts off
+	//int spl = splhigh();// meant to be called with interrupts off
 	assert(curspl>0);
-	enableInterrupts();
+	//splx(spl);
 	return q_addtail(runqueue[get_priority(t)], t);
 }
 
@@ -173,7 +176,6 @@ print_run_queue(void)
 	int spl = splhigh();
 
 	int i,j,k=0;
-	disableInterrupts();
 	for(j = 0; j < NUM_PRIORITIES;j++)
 	{
 		i = q_getstart(runqueue[j]);
@@ -188,6 +190,5 @@ print_run_queue(void)
 	}
 	
 	splx(spl);
-	enableInterrupts();
 }
 

@@ -4,6 +4,9 @@
 #define SCHEDULER_TYPE "priority queuing with round robin"
 #define NUM_PRIORITIES 3
 #define NORMAL_PRIORITY 1
+#define HIGH_PRIORITY 0
+#define LOW_PRIORITY 2
+
 /*
  * Scheduler-related function calls.
  *
