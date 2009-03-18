@@ -1,14 +1,14 @@
 #ifndef __FILE_H
 #define __FILE_H
 
-#include <unistd.h>
+#include <kern/unistd.h>
 
 #define MAX_FD 255
 
 struct file {
 	struct vnode *vfs_node;
-	uint8_t writeable;
-	uint8_t readable;
+	int writeable;
+	int readable;
 	struct uio *location;
 	//mode_t mode; /* unused */
 };
@@ -26,7 +26,7 @@ struct file {
 int open(const char *filename, int flags);
 
 // open a file, with mode (we'll ignore mode since it's not required)
-int open(const char *filename, int flags, int mode);
+//int open(const char *filename, int flags, int mode);
 
 // close a file
 /*The file handle fd is closed. The same file handle may then be 
@@ -58,7 +58,7 @@ int read(int fd, void *buf, size_t buflen);
 * to other I/O to the same file.
 *
 * Returns the number of bytes written, or a negative number for an error */
-int write(int fd, const void *buf, size_t nbytes>);
+int write(int fd, const void *buf, size_t nbytes);
 
 //change current position in file
 /* lseek alters the current seek position of the file handle filehandle, 
