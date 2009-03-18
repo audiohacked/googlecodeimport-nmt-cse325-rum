@@ -19,14 +19,12 @@ waitpid(pid_t wpid, int *status, int options)
 
 	if (status == NULL)
 	{
-		errno = EFAULT;
-		return -1;
+		return -EFAULT;
 	}
 	
 	if (array_getnum(process_table) < wpid)
 	{
-		errno = EFAULT;
-		return -1;
+		return -EFAULT;
 	}
 
 	ptable = array_getguy(process_table, wpid);
@@ -35,8 +33,7 @@ waitpid(pid_t wpid, int *status, int options)
 	{	
 	case 0:break;
 	default:
-		errno = EINVAL;
-		return -1;
+		return -EINVAL;
 	}
 
 	while(!ptable->exited);

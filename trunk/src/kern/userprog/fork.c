@@ -35,16 +35,14 @@ fork(void)
 	result = thread_fork(strcat(curthread->t_name, "_child"), NULL, 0, NULL, &child);
 	if (result)
 	{
-		errno = result;
-		return -1;
+		return -result;
 	}
 	
 	/* copy parent's memory space to child thread */
 	result = as_copy(curthread->t_vmspace, &child->t_vmspace);
 	if (result)
 	{
-		errno = result;
-		return -1;
+		return -result;
 	}
 	
 	/* copy the priority of parent to child */
