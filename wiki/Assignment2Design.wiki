@@ -3,6 +3,8 @@
 In this lab, we implemented many different things. The bulk of the lab was spent implementing various system calls related to file I/O and processes. The remainder of the lab was designing and implementing a scheduler.
 
 = System Calls =
+Note that using `errno` breaks the code and leads to linker problems, with the provided `errno.h` included and `errno`  and to alleviate the problem, our code just returns the negative of the error code. Therefore any calling code that checks for a positive result will still fail in the correct fashion.
+
 == File I/O ==
 For this part, we needed to implement a few things before we could implement the actual system calls - namely, file descriptors and a file descriptor table for each thread.
 ----
@@ -13,6 +15,8 @@ Our file descriptor design includes a few integral elements. Most importantly, i
 Each thread has a file descriptor table of fixed size, determined by the constant `MAX_FD`, which is contained in file.h, and represents the maximum number of handles a thread can have. The table is implemented as an array, and the handle is the index into the array. Each index can only be used once. The reason for this is because subsequent function calls may try to access a handle after it has been closed using the `close` function. Thus, the handle cannot be reallocated, and we decided to set the file descriptor's `vnode` to `NULL` in order to indicate the file is closed.
 ----
 *Open/close* - use `vfs_open` and `vfs_close` to manipulate the `struct vnode`.
+----
+
 
 == Processes ==
 For this part, we needed to implement a pid system to manage processes; waiting and exiting processes.
