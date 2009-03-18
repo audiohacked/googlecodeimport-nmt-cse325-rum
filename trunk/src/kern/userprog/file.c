@@ -181,11 +181,23 @@ off_t lseek(int fd, off_t pos, int whence)
 	{
 		//probably need to check for EOF here
 		//looks like vop_tryseek will help a lot
+		
+		/*result = VOP_TRYSEEK(curthread->t_fd[fd]->vfs_node,
+		curthread->t_fd[fd]->location.uio_offset);*/
+			
 		curthread->t_fd[fd]->location.uio_offset = pos;
 		return curthread->t_fd[fd]->location.uio_offset;
 	}
 	else if(whence == SEEK_END)
 	{
+		/*while(result)
+		//{
+		//result = VOP_READ(curthread->t_fd[fd]->vfs_node, 
+		//curthread->t_fd[fd]->location);
+		//}
+		//result = VOP_WRITE(curthread->t_fd[fd]->vfs_node, 
+		curthread->t_fd[fd]->location);*/
+		
 		//do a read to the EOF, then add
 		//pos to offset
 		//need to figure out if vop_read changes the offset,
