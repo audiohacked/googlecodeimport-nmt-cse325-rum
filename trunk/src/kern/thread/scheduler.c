@@ -19,6 +19,8 @@
 // Queue of runnable threads
 static struct queue *runqueue[NUM_PRIORITIES];
 
+
+Semaphore my_semaphore = 1;
 /*
  * Setup function
  */
@@ -116,6 +118,7 @@ scheduler(void)
 {
 	int runme, i, allempty = 1;
 	// meant to be called with interrupts off
+	disableInterrupts();
 	assert(curspl>0);
 	
 	//while all queues are empty, idle the CPU
@@ -136,7 +139,7 @@ scheduler(void)
 		if(!q_empty(runqueue[i]))
 			runme = i;
 	}
-
+	enableInterrupts();
 	// You can actually uncomment this to see what the scheduler's
 	// doing - even this deep inside thread code, the console
 	// still works. However, the amount of text printed is
@@ -154,9 +157,9 @@ scheduler(void)
 int
 make_runnable(struct thread *t)
 {
-	// meant to be called with interrupts off
+	disableInterrupts();// meant to be called with interrupts off
 	assert(curspl>0);
-
+	enableInterrupts();
 	return q_addtail(runqueue[get_priority(t)], t);
 }
 
@@ -170,6 +173,7 @@ print_run_queue(void)
 	int spl = splhigh();
 
 	int i,j,k=0;
+	disableInterrupts();
 	for(j = 0; j < NUM_PRIORITIES;j++)
 	{
 		i = q_getstart(runqueue[j]);
@@ -184,4 +188,6 @@ print_run_queue(void)
 	}
 	
 	splx(spl);
+	enableInterrupts();
 }
+
