@@ -1,9 +1,16 @@
+#include <types.h>
+#include <kern/unistd.h>
+#include <kern/errno.h>
+#include <lib.h>
+#include <addrspace.h>
 #include <thread.h>
+#include <curthread.h>
+#include <array.h>
+#include <pid.h>
 
 void
 _exit(int exitcode)
 {
-	int result;
 	struct proc_table *ptable;
 	pid_t curpid;
 	

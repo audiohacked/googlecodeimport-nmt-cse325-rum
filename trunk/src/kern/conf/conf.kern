@@ -379,9 +379,15 @@ file      main/menu.c
 # calls assignment)
 #
 
+file      userprog/_exit.c
+file      userprog/execv.c
+file      userprog/file.c
+file      userprog/fork.c
+file      userprog/getpid.c
 file      userprog/loadelf.c
 file      userprog/runprogram.c
 file      userprog/uio.c
+file      userprog/waitpid.c
 
 #
 # Virtual memory system
