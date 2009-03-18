@@ -1,7 +1,7 @@
 #ifndef __PID_H
 #define __PID_H
 
-#include <types.h>
+struct array;
 
 struct proc_table
 {
@@ -9,6 +9,9 @@ struct proc_table
 	pid_t process_id;
 	int exit_code;
 	int exited;
-}
+};
+
+extern struct array *process_table;
+extern int pidcount;
 
 #endif /* __PID_H */

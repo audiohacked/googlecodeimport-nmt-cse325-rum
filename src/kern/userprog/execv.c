@@ -35,7 +35,7 @@ execv(const char *program, char **args)
 	size_t copystrlen;
 
 	/* Open the file. */
-	result = vfs_open(progname, O_RDONLY, &v);
+	result = vfs_open(program, O_RDONLY, &v);
 	if (result) {
 		errno = result;
 		return -1;
@@ -81,10 +81,12 @@ execv(const char *program, char **args)
 	/* fetch the arguments and environment from the caller */
 	program_argc = get_args_count( args );
 	for(i=0; i<program_argc; i++)
+	{
 		copyinstr(args[i], program_args[i], sizeof(args[i]), &copystrlen);
+	}
 	program_args[program_argc] = NULL;
 	copyin(&args, &stackptr, sizeof(args));
-
+	
 	/* Warp to user mode. */
 	md_usermode(program_argc, program_args /*userspace addr of argv*/,
 		    stackptr, entrypoint);
