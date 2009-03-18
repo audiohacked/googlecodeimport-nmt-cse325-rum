@@ -1,3 +1,4 @@
+#include <types.h>
 #include <file.h>
 #include <vfs.h>
 #include <vnode.h>
@@ -17,7 +18,7 @@ extern int errno;
 * and can be ignored.
 *
 * Returns a non-negative file handle, or -1 for error */
-int open(const char *path, int oflag, ...)
+int open(const char *path, int oflag)
 {
 	/* set up variables for the vnode return, and function call return */
 	int result, fd;
@@ -27,12 +28,11 @@ int open(const char *path, int oflag, ...)
 	//(void) mode; /* curthread->t_fd->mode = mode; */
 
 	/* use vfs_open to open the file */
-	result = vfs_open( path, oflag, &v);
+	result = vfs_open( (char*)path, oflag, &v);
 	
 	if(curthread->fdcount >= MAX_FD)
 	{
-		errno = EMFILE;
-		return -1;
+		return -EMFILE;
 	}
 	
 	/* add new fd to process's fd table */
@@ -68,8 +68,7 @@ int close(int fid)
 	// if not a valid file handle, return -1 and set errno to EBADF
 	if(fd->vfs_node == NULL)
 	{
-		errno = EBADF;
-		return -1;
+		return -EBADF;
 	}
 	// close the node
 	vfs_close(fd->vfs_node);
@@ -94,8 +93,7 @@ int read(int fd, void *buf, size_t buflen)
 	// check for validity of file handle
 	if(curthread->t_fd[fd].vfs_node == NULL||curthread->t_fd[fd].readable == 0)
 	{
-		errno = EBADF;
-		return -1;
+		return -EBADF;
 	}
 	
 	//set flags of uio to match read operation
@@ -110,8 +108,7 @@ int read(int fd, void *buf, size_t buflen)
 	{
 		if(buf == NULL)
 		{
-			errno = EFAULT;
-			return -1;
+			return -EFAULT;
 		}
 		// make sure read populated the array properly
 		else if(curthread->t_fd[fd].location->uio_iovec.iov_un.un_ubase != NULL)
@@ -120,8 +117,7 @@ int read(int fd, void *buf, size_t buflen)
 		}
 		else
 		{
-			errno = EIO;
-			return -1;
+			return -EIO;
 		}
 	}
 	return result;
@@ -145,14 +141,12 @@ int write(int fd, const void *buf, size_t nbytes)
 	if( (curthread->t_fd[fd].vfs_node == NULL) || 
 		(curthread->t_fd[fd].writeable!=1) )
 	{
-		errno = EBADF;
-		return -1;
+		return -EBADF;
 	}
 	// make sure buffer is initialized
 	else if(buf == NULL)
 	{
-		errno = EFAULT;
-		return -1;
+		return -EFAULT;
 	}
 	// make sure there's space on filesystem (not yet sure how to do this)
 	/*else if(space < nbytes)
@@ -185,14 +179,12 @@ off_t lseek(int fd, off_t pos, int whence)
 	if(whence == SEEK_CUR && 
 		pos < 0 && pos > curthread->t_fd[fd].location->uio_offset)
 	{
-		errno = EINVAL;
-		return -1;
+		return -EINVAL;
 	}
 	// check for invalid file handle
 	else if(curthread->t_fd[fd].vfs_node == NULL)
 	{
-		errno = EBADF;
-		return -1;
+		return -EBADF;
 	}
 	else if(whence == SEEK_SET)
 	{
@@ -213,8 +205,7 @@ off_t lseek(int fd, off_t pos, int whence)
 	}
 	else
 	{
-		errno = EINVAL;
-		return -1;
+		return -EINVAL;
 	}
 	
 	//shouldn't get here
@@ -240,8 +231,7 @@ int dup2(int oldfd, int newfd)
 	// check to make sure oldfd refers to a valid handle
 	if(ofd.vfs_node == NULL)
 	{
-		errno = EBADF;
-		return -1;
+		return -EBADF;
 	}
 	
 	// check to see if newfd is already an open file handle
@@ -260,3 +250,4 @@ int dup2(int oldfd, int newfd)
 	nfd.location->uio_offset = ofd.location->uio_offset;
 	return 0;
 }
+

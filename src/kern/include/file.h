@@ -1,7 +1,8 @@
 #ifndef __FILE_H
 #define __FILE_H
 
-#include <kern/unistd.h>
+struct vnode;
+struct uio;
 
 #define MAX_FD 255
 
