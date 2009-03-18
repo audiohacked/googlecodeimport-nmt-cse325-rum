@@ -12,6 +12,7 @@ Our file descriptor design includes a few integral elements. Most importantly, i
 *File Descriptor table and FIDs* -
 Each thread has a file descriptor table of fixed size, determined by the constant `MAX_FD`, which is contained in file.h, and represents the maximum number of handles a thread can have. The table is implemented as an array, and the handle is the index into the array. Each index can only be used once. The reason for this is because subsequent function calls may try to access a handle after it has been closed using the `close` function. Thus, the handle cannot be reallocated, and we decided to set the file descriptor's `vnode` to `NULL` in order to indicate the file is closed.
 ----
+*Open/close* - use `vfs_open` and `vfs_close` to manipulate the `struct vnode`.
 
 == Processes ==
 For this part, we needed to implement a pid system to manage processes; waiting and exiting processes.
