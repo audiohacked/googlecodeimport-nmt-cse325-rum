@@ -1,6 +1,11 @@
 #include <file.h>
 #include <vfs.h>
 #include <vnode.h>
+#include <thread.h>
+#include <kern/unistd.h>
+#include <kern/errno.h>
+#include <uio.h>
+#include <curthread.h>
 
 extern int errno;
 
@@ -12,14 +17,14 @@ extern int errno;
 * and can be ignored.
 *
 * Returns a non-negative file handle, or -1 for error */
-int open(cont char *path, int oflag)
+int open(const char *path, int oflag, ...)
 {
 	/* set up variables for the vnode return, and function call return */
 	int result, fd;
 	struct vnode *v;
 	
 	/* fix gcc warnings/errors due to unused variable */
-	(void) mode; /* curthread->t_fd->mode = mode; */
+	//(void) mode; /* curthread->t_fd->mode = mode; */
 
 	/* use vfs_open to open the file */
 	result = vfs_open( path, oflag, &v);
@@ -41,7 +46,7 @@ int open(cont char *path, int oflag)
 	{
 		curthread->t_fd[fd].writeable=1;
 	}
-	curthread->t_fd[fd]->location.uio_offset = 0;
+	curthread->t_fd[fd].location->uio_offset = 0;
 	
 	return fd;
 }
@@ -58,7 +63,7 @@ int close(int fid)
 	struct file *fd;
 	
 	// find the descriptor in the process's file table
-	fd = curthread->t_fd[fid];
+	fd = &curthread->t_fd[fid];
 	
 	// if not a valid file handle, return -1 and set errno to EBADF
 	if(fd->vfs_node == NULL)
@@ -87,18 +92,18 @@ int read(int fd, void *buf, size_t buflen)
 	int result;
 	
 	// check for validity of file handle
-	if(curthread->t_fd[fd]->vfs_node == NULL||curthread->t_fd[fd].readable == 0)
+	if(curthread->t_fd[fd].vfs_node == NULL||curthread->t_fd[fd].readable == 0)
 	{
 		errno = EBADF;
 		return -1;
 	}
 	
 	//set flags of uio to match read operation
-	curthread->t_fd[fd]->location.uio_rw = UIO_READ;
-	curthread->t_fd[fd]->location.uio_resid = buflen;
+	curthread->t_fd[fd].location->uio_rw = UIO_READ;
+	curthread->t_fd[fd].location->uio_resid = buflen;
 	
-	result = VOP_READ(curthread->t_fd[fd]->vfs_node, 
-		curthread->t_fd[fd]->location);
+	result = VOP_READ(curthread->t_fd[fd].vfs_node, 
+		curthread->t_fd[fd].location);
 	
 	// if result is 0, we've reached EOF - else move data into buf
 	if(result > 0)
@@ -109,9 +114,9 @@ int read(int fd, void *buf, size_t buflen)
 			return -1;
 		}
 		// make sure read populated the array properly
-		else if(curthread->t_fd[fd]->location->uio_space.iov_un != NULL)
+		else if(curthread->t_fd[fd].location->uio_iovec.iov_un.un_ubase != NULL)
 		{
-			buf = curthread->t_fd[fd]->location->uio_space.iov_un;
+			buf = curthread->t_fd[fd].location->uio_iovec.iov_un.un_ubase;
 		}
 		else
 		{
@@ -137,7 +142,7 @@ int write(int fd, const void *buf, size_t nbytes)
 	
 	/***************** Error Checking ******************************/
 	// if handle is invalid or file is not writable, return an error
-	if( (curthread->t_fd[fd]->vfs_node == NULL) || 
+	if( (curthread->t_fd[fd].vfs_node == NULL) || 
 		(curthread->t_fd[fd].writeable!=1) )
 	{
 		errno = EBADF;
@@ -150,22 +155,22 @@ int write(int fd, const void *buf, size_t nbytes)
 		return -1;
 	}
 	// make sure there's space on filesystem (not yet sure how to do this)
-	else if(space < nbytes)
+	/*else if(space < nbytes)
 	{
 		errno = ENOSPC;
 		return -1;
-	}
+	}*/
 	/***************** End Error Checking ***************************/
 	
 	// make uio writable
-	curthread->t_fd[fd]->location.uio_rw = UIO_WRITE;
+	curthread->t_fd[fd].location->uio_rw = UIO_WRITE;
 	// put buffer pointer into uio
-	curthread->t_fd[fd]->location->uio_space.iov_un = buf;
+	curthread->t_fd[fd].location->uio_iovec.iov_un.un_ubase = (userptr_t)buf;
 	// resid is the number of bytes to be written
-	curthread->t_fd[fd]->location.uio_resid = nbytes;
+	curthread->t_fd[fd].location->uio_resid = nbytes;
 	
-	result = VOP_WRITE(curthread->t_fd[fd]->vfs_node, 
-	curthread->t_fd[fd]->location);
+	result = VOP_WRITE(curthread->t_fd[fd].vfs_node, 
+	curthread->t_fd[fd].location);
 	return result;
 }
 
@@ -175,23 +180,24 @@ int write(int fd, const void *buf, size_t nbytes)
 * Returns new position or -1 for error */
 off_t lseek(int fd, off_t pos, int whence)
 {
+	int result;
 	// check to make sure we're not seeking past the beginning of the file
 	if(whence == SEEK_CUR && 
-		pos < 0 && pos > curthread->t_fd[fd]->location.uio_offset)
+		pos < 0 && pos > curthread->t_fd[fd].location->uio_offset)
 	{
 		errno = EINVAL;
 		return -1;
 	}
 	// check for invalid file handle
-	else if(curthread->t_fd[fd]->vfs_node == NULL)
+	else if(curthread->t_fd[fd].vfs_node == NULL)
 	{
 		errno = EBADF;
 		return -1;
 	}
 	else if(whence == SEEK_SET)
 	{
-		curthread->t_fd[fd]->location.uio_offset = pos;
-		return curthread->t_fd[fd]->location.uio_offset;
+		curthread->t_fd[fd].location->uio_offset = pos;
+		return curthread->t_fd[fd].location->uio_offset;
 	}
 	else if(whence == SEEK_END)
 	{
@@ -199,17 +205,20 @@ off_t lseek(int fd, off_t pos, int whence)
 		//pos to offset
 		do
 		{
-			result = VOP_READ(curthread->t_fd[fd]->vfs_node, 
-				curthread->t_fd[fd]->location);
+			result = VOP_READ(curthread->t_fd[fd].vfs_node, 
+				curthread->t_fd[fd].location);
 		}while(result > 0);
-		curthread->t_fd[fd]->location.uio_offset += pos;
-		return curthread->t_fd[fd]->location.uio_offset;
+		curthread->t_fd[fd].location->uio_offset += pos;
+		return curthread->t_fd[fd].location->uio_offset;
 	}
 	else
 	{
 		errno = EINVAL;
 		return -1;
 	}
+	
+	//shouldn't get here
+	return -1;
 }
 
 // clone a file handle
@@ -222,32 +231,32 @@ off_t lseek(int fd, off_t pos, int whence)
  * Returns newfd on success, -1 on error */
 int dup2(int oldfd, int newfd)
 {
-	struct file *nfd, *ofd;
+	struct file nfd, ofd;
 	
 	// find the descriptor in the process's file table
 	nfd = curthread->t_fd[newfd];
 	ofd = curthread->t_fd[oldfd];
 	
 	// check to make sure oldfd refers to a valid handle
-	if(fd->vfs_node == NULL)
+	if(ofd.vfs_node == NULL)
 	{
 		errno = EBADF;
 		return -1;
 	}
 	
 	// check to see if newfd is already an open file handle
-	if(fd->vfs_node != NULL)
+	if(nfd.vfs_node != NULL)
 	{
 		close(newfd);
 	}
 	
 	// increment the open count on the vfs_node
-	VOP_INCOPEN(fd->vfs_node);
+	VOP_INCOPEN(nfd.vfs_node);
 	
 	// set all stuff in the new node equal to stuff in the old node
-	nfd->vfs_node = ofd->vfs_node;
-	nfd->writable = ofd->writable;
-	nfd->readable = ofd->readable;
-	nfd->location.uio_offset = ofd->location.uio_offset;
+	nfd.vfs_node = ofd.vfs_node;
+	nfd.writeable = ofd.writeable;
+	nfd.readable = ofd.readable;
+	nfd.location->uio_offset = ofd.location->uio_offset;
 	return 0;
 }
