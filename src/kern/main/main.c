@@ -83,7 +83,7 @@ boot(void)
 	
 	// Displays the type of scheduler we have implemented, in compliance
 	// with lab 2.
-	kprintf("\nscheduler:%s\n",SCHEDULER_TYPE);
+	kprintf("\nscheduler:%s\n", SCHEDULER_TYPE);
 	kprintf("\n");
 
 	/*

@@ -55,9 +55,6 @@ struct thread {
 
 };
 
-/* Return value of priority, which is private */
-int get_priority(struct thread*);
-
 /* Call once during startup to allocate data structures. */
 struct thread *thread_bootstrap(void);
 

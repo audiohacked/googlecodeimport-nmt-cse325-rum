@@ -11,9 +11,7 @@
 #include <curthread.h>
 #include <scheduler.h>
 #include <addrspace.h>
-#include <vfs.h>
 #include <vnode.h>
-#include <kern/unistd.h>
 #include "opt-synchprobs.h"
 
 /* States a thread can be in. */
@@ -33,13 +31,15 @@ static struct array *sleepers;
 /* List of dead threads to be disposed of. */
 static struct array *zombies;
 
+/* List of used pids. */
+struct array *process_table;
+
+/* count of used pids. */
+int pidcount;
+
 /* Total number of outstanding threads. Does not count zombies[]. */
 static int numthreads[NUM_PRIORITIES];
 static int totalthreads;
-
-/* process table for all threads; needed to help implement waitpid and pid system */
-struct array *process_table;
-int pidcount = 0;
 
 /*
  * Create a thread. This is used both to create the first thread's 
@@ -74,13 +74,6 @@ thread_create(const char *name)
 		
 	return thread;
 }
-/* Return thread priority */
-int
-get_priority(struct thread *thread)
-{
-	return thread->priority;
-}
-
 
 /*
  * Destroy a thread.
@@ -319,7 +312,7 @@ thread_fork(const char *name,
 	}
 
 	/* Do the same for the scheduler. */
-	result = scheduler_preallocate(numthreads[get_priority(curthread)]+1, get_priority(curthread));
+	result = scheduler_preallocate(numthreads[newguy->priority]+1, newguy->priority);
 	if (result) {
 		goto fail;
 	}
@@ -336,7 +329,7 @@ thread_fork(const char *name,
 	 * temporarily too low, which would obviate its reason for
 	 * existence.
 	 */
-	numthreads[get_priority(newguy)]++;
+	numthreads[newguy->priority]++;
 	totalthreads++;
 
 	/* Done with stuff that needs to be atomic */
@@ -465,6 +458,7 @@ mi_switch(threadstate_t nextstate)
 void
 thread_exit(void)
 {
+	int p;
 	if (curthread->t_stack != NULL) {
 		/*
 		 * Check the magic number we put on the bottom end of
@@ -480,7 +474,7 @@ thread_exit(void)
 	}
 
 	splhigh();
-
+	p = curthread->priority;
 	if (curthread->t_vmspace) {
 		/*
 		 * Do this carefully to avoid race condition with
@@ -497,9 +491,9 @@ thread_exit(void)
 	}
 
 	assert(totalthreads>0);
-	assert(numthreads[get_priority(curthread)]>0);
+	assert(numthreads[p]>0);
 	totalthreads--;
-	numthreads[get_priority(curthread)]--;
+	numthreads[p]--;
 	mi_switch(S_ZOMB);
 
 	panic("Thread came back from the dead!\n");
