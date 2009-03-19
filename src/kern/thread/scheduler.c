@@ -19,8 +19,6 @@
 // Queue of runnable threads
 static struct queue *runqueue[NUM_PRIORITIES];
 
-
-//Semaphore my_semaphore = 1;
 /*
  * Setup function
  */
@@ -30,17 +28,8 @@ scheduler_bootstrap(void)
 	int i;
 	//initialize NUM_PRIORITIES queues, one for each priority level
 	//runqueue = kmalloc(sizeof(queue) * NUM_PRIORITIES);
-	/*runqueue[HIGH_PRIORITY] = q_create(5);
-	runqueue[NORMAL_PRIORITY] = q_create(22);
-	runqueue[LOW_PRIORITY] = q_create(5);
-	*/
 	for(i = 0; i < NUM_PRIORITIES; i++)
 	{
-		//kprintf("initializing queue %i\n", i);
-		//if(32%NUM_PRIORITIES==0)
-		//	runqueue[i] = q_create(32/NUM_PRIORITIES);
-		//else
-		//	runqueue[i] = q_create(32/(NUM_PRIORITIES + 1));
 		runqueue[i] = q_create(10);
 		if (runqueue[i] == NULL) 
 		{

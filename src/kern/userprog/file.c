@@ -251,3 +251,31 @@ int dup2(int oldfd, int newfd)
 	return 0;
 }
 
+void
+initialize_std_fd(void)
+{
+	struct vnode *stin, *stout, *sterr;
+	
+	// initialize file descriptor table, and set first three
+	// entries to STDIN, STDOUT, and STDERR
+	curthread->fdcount = 2;
+	
+	// set t_fd[0] to STDIN
+	vfs_open((char*)"con:", O_RDONLY, &stin);
+	curthread->t_fd[0].vfs_node = stin;
+	curthread->t_fd[0].readable=1;
+	curthread->t_fd[0].writeable=0;
+	
+	// set t_fd[1] to STDOUT
+	vfs_open((char*)"con:", O_WRONLY, &stout);
+	curthread->t_fd[1].vfs_node = stout;
+	curthread->t_fd[1].readable=0;
+	curthread->t_fd[1].writeable=1;
+	
+	// set t_fd[2] to STDERR
+	vfs_open((char*)"con:", O_WRONLY, &sterr);
+	curthread->t_fd[2].vfs_node = sterr;
+	curthread->t_fd[2].readable=0;
+	curthread->t_fd[2].writeable=1;
+	
+}

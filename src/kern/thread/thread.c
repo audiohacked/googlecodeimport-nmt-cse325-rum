@@ -34,7 +34,7 @@ static struct array *sleepers;
 static struct array *zombies;
 
 /* Total number of outstanding threads. Does not count zombies[]. */
-static int numthreads;//[NUM_PRIORITIES];
+static int numthreads[NUM_PRIORITIES];
 static int totalthreads;
 
 /* process table for all threads; needed to help implement waitpid and pid system */
@@ -50,7 +50,6 @@ static
 struct thread *
 thread_create(const char *name)
 {
-	struct vnode *stin, *stout, *sterr;
 	struct thread *thread = kmalloc(sizeof(struct thread));
 	if (thread==NULL) {
 		return NULL;
@@ -72,33 +71,12 @@ thread_create(const char *name)
 	/* initialize priority to 'normal', which will be the middle
 	* priority */
 	thread->priority = NORMAL_PRIORITY;
-	
-	// initialize file descriptor table, and set first three
-	// entries to STDIN, STDOUT, and STDERR
-	thread->fdcount = 2;
-	
-	// set t_fd[0] to STDIN
-	vfs_open("con:", O_RDONLY, &stin);
-	thread->t_fd[0].vfs_node = stin;
-	thread->t_fd[0].readable=1;
-	thread->t_fd[0].writeable=0;
-	
-	// set t_fd[1] to STDOUT
-	vfs_open("con:", O_WRONLY, &stout);
-	thread->t_fd[1].vfs_node = stout;
-	thread->t_fd[1].readable=0;
-	thread->t_fd[1].writeable=1;
-	
-	// set t_fd[2] to STDERR
-	vfs_open("con:", O_WRONLY, &sterr);
-	thread->t_fd[2].vfs_node = sterr;
-	thread->t_fd[2].readable=0;
-	thread->t_fd[2].writeable=1;
-	
+		
 	return thread;
 }
 /* Return thread priority */
-int get_priority(struct thread *thread)
+int
+get_priority(struct thread *thread)
 {
 	return thread->priority;
 }
@@ -251,12 +229,11 @@ thread_bootstrap(void)
 	/* Number of threads starts at 1 */
 	for(i = 0; i < NUM_PRIORITIES; i++)
 	{
-		numthreads = 0;//[i] = 0;
+		numthreads[i] = 0;
 	}
 	//there will be at least one thread, in the normal priority
 	totalthreads = 1;
-	//numthreads[NORMAL_PRIORITY] = 1;
-	numthreads = 1;
+	numthreads[NORMAL_PRIORITY] = 1;
 
 	/* Done */
 	return me;
@@ -342,7 +319,7 @@ thread_fork(const char *name,
 	}
 
 	/* Do the same for the scheduler. */
-	result = scheduler_preallocate(numthreads+1);
+	result = scheduler_preallocate(numthreads[get_priority(curthread)]+1, get_priority(curthread));
 	if (result) {
 		goto fail;
 	}
@@ -359,7 +336,7 @@ thread_fork(const char *name,
 	 * temporarily too low, which would obviate its reason for
 	 * existence.
 	 */
-	numthreads;//[get_priority(newguy)]++;
+	numthreads[get_priority(newguy)]++;
 	totalthreads++;
 
 	/* Done with stuff that needs to be atomic */
@@ -520,9 +497,9 @@ thread_exit(void)
 	}
 
 	assert(totalthreads>0);
-	assert(numthreads>0);//[get_priority(curthread)]>0);
+	assert(numthreads[get_priority(curthread)]>0);
 	totalthreads--;
-	numthreads--;//[get_priority(curthread)]--;
+	numthreads[get_priority(curthread)]--;
 	mi_switch(S_ZOMB);
 
 	panic("Thread came back from the dead!\n");
