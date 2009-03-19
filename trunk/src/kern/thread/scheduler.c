@@ -127,7 +127,7 @@ scheduler(void)
 	}
 	
 	// find the highest priority queue with stuff in it
-	for(i = NUM_PRIORITIES; i >= 0 ; i--)
+	for(i=0; i<NUM_PRIORITIES; i++)
 	{
 		if(!q_empty(runqueue[i]))
 			runme = i;
@@ -149,10 +149,9 @@ scheduler(void)
 int
 make_runnable(struct thread *t)
 {
-	//int spl = splhigh();// meant to be called with interrupts off
 	assert(curspl>0);
-	//splx(spl);
-	return q_addtail(runqueue[get_priority(t)], t);
+
+	return q_addtail(runqueue[t->priority], t);
 }
 
 /*
