@@ -120,7 +120,10 @@ scheduler(void)
 		for(i = 0; i < NUM_PRIORITIES; i++)
 		{
 			if(!q_empty(runqueue[i]))
-				 allempty = 0;
+			{
+				allempty = 0;
+				break;
+			}
 		}
 		
 		cpu_idle();
@@ -130,7 +133,10 @@ scheduler(void)
 	for(i=0; i<NUM_PRIORITIES; i++)
 	{
 		if(!q_empty(runqueue[i]))
+		{
 			runme = i;
+			break;
+		}
 	}
 	// You can actually uncomment this to see what the scheduler's
 	// doing - even this deep inside thread code, the console
