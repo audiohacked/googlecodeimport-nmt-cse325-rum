@@ -115,9 +115,8 @@ scheduler(void)
 	assert(curspl>0);
 	
 	//while all queues are empty, idle the CPU
-	while ( allempty == 1)
+	while ( allempty )
 	{
-		cpu_idle();
 		for(i = 0; i < NUM_PRIORITIES; i++)
 		{
 			if(!q_empty(runqueue[i]))
@@ -126,6 +125,7 @@ scheduler(void)
 				break;
 			}
 		}
+		if (allempty) cpu_idle();
 	}
 	
 	// find the highest priority queue with stuff in it
