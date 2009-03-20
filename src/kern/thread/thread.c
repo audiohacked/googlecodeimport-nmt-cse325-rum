@@ -491,7 +491,7 @@ thread_exit(void)
 	}
 
 	assert(totalthreads>0);
-	assert(numthreads[p]>0);
+	//assert(numthreads[p]>0);
 	totalthreads--;
 	numthreads[p]--;
 	mi_switch(S_ZOMB);
