@@ -16,4 +16,8 @@ spin_unlock(&rq->lock);
 
 `effective_prio(struct task_struct *p)`: sched.c @ line 1759
 
+`sched_fork(struct task_struct *p, int clone_flags)`: sched.c @ line 2422
+
+`__sched_fork((struct task_struct *p)`: sched.c @ line 2382
+
 rq is the run queue
