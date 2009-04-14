@@ -1,14 +1,18 @@
 #summary Self explanatory
 
-Note we're using 2.6.29 instead of the class version.
+<p>Note we're using 2.6.29 instead of the class version.</p>
 
-schedule() location: sched.c @ line 4546
-scheduler_tick(): sched.c @ 4387, critical section:
+`schedule()` location: sched.c @ line 4546
+
+`scheduler_tick()`: sched.c @ 4387, critical section:
+
+{{{
 spin_lock(&rq->lock);
         update_rq_clock(rq);
         update_cpu_load(rq);
         curr->sched_class->task_tick(rq, curr, 0);
 spin_unlock(&rq->lock);
+}}}
 
 
-rq = run queue
+rq is the run queue
