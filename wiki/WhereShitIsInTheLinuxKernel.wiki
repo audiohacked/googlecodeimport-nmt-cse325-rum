@@ -14,5 +14,6 @@ spin_lock(&rq->lock);
 spin_unlock(&rq->lock);
 }}}
 
+`effective_prio(struct task_struct *p)`: sched.c @ line 1759
 
 rq is the run queue
