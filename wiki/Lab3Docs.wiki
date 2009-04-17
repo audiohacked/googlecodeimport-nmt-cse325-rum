@@ -1,0 +1,22 @@
+Corey Brown
+Sean Nelson
+Andrew Murtland
+
+Please note that we are using kernel version 2.6.28.8 because of compatibility issues. Sean is on Mac OSX, and the lab version does not compile readily, so he found a version that does, with less configuring effort. I'm (Corey) on 64-bit Linux, which is the same story. We made sure this was ok with Song, and he said it was fine as long as we demonstrated that it worked to the TA.
+
+1.We needed a mechanism that keeps track of how many groups are active.
+2.We needed to modify scheduler() to include a conditional that used our scheduling method if activated by the program.
+
+The function “asmlinkage void __sched schedule(void)” is located at line 4440 in kernel version 2.6.28.8 – this is the main scheduler function. schedule() uses a run queue (rq), which is used to implement round robin scheduling.
+
+Detailed explanation of what schedule does:
+
+1.schedule() disables pre-emption and gets the rq from the cpu.
+2.Not too sure what rcu_qsctr_inc does, except it's passed the cpu, is located in rcupreempt.h, and increments the sched_qs of the rcu_dyntick_sched struct
+3.It then sets the current process to be prev, switch_count to prev->nivcsw (the number of context switches for that process), and calls release_kernel_lock(prev)
+4.schedule() uses “spin_lock_irq(&rq->lock);” to turn off interrupts. It then calls update_rq_clock(rq) @ line 641, which in turn sets rq->clock equal to sched_clock_cpu(cpu_of(rq)), which is in sched_clock.c @ line 149, and which apparently further disables interrupts using another spin lock, and calls update_sched_clock(struct sched_clock_data *scd, u64 now) @ line 109 in the same file – this is the function that actually increments the clock.
+5.Everything goes back to the main schedule() function, which uses a chain of functions, starting with clear_tsk_need_resched to clear a bit in the prev thread (the thread that's about to go to the end of the line).
+
+3.We needed to modify sched.h to include our scheduler mode
+
+Within sched.h are definitions of each scheduler mode, and a number associated with them. This is so that we can use “sched_setscheduler(pid_t pid)” to set the scheduler policy, rather than modifying the scheduler that is in place. As required, we added a “#define SCHED_FSG” in addition to the pre-existing scheduler modes.
