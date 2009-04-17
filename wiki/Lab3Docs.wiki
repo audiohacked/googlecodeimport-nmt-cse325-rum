@@ -9,7 +9,7 @@ Please note that we are using kernel version 2.6.28.8 because of compatibility i
 2.We needed to modify scheduler() to include a conditional that used our scheduling method if activated by the program.
 
 The function “asmlinkage void __sched schedule(void)” is located at line 4440 in kernel version 2.6.28.8 – this is the main scheduler function. schedule() uses a run queue (rq), which is used to implement round robin scheduling.
----
+----
 Detailed explanation of what schedule does:
 
 1.schedule() disables pre-emption and gets the rq from the cpu.
@@ -32,7 +32,7 @@ Detailed explanation of what schedule does:
 
 10.it may slip through to a few gotos, which skip back to previous steps
 
----
+----
 3.We needed to modify sched.h to include our scheduler mode
 
 Within sched.h are definitions of each scheduler mode, and a number associated with them. This is so that we can use “sched_setscheduler(pid_t pid)” to set the scheduler policy, rather than modifying the scheduler that is in place. As required, we added a “#define SCHED_FSG” in addition to the pre-existing scheduler modes.
